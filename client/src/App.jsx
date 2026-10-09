@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import './App.css'
 
 const industries = ['All', 'Climate', 'Healthtech', 'Logistics', 'Fintech', 'Education', 'Consumer']
@@ -139,6 +139,12 @@ function StartupCard({ startup }) {
 
   return (
     <article className="startup-card">
+      <button
+        className="card-hit-area"
+        type="button"
+        aria-label={`View details for ${startup.name}`}
+        onClick={() => startup.onOpen(startup)}
+      />
       <div className="card-topline">
         <div className={`startup-avatar ${startup.color}`} aria-hidden="true">{startup.initials}</div>
         <span className="stage-badge">{startup.stage}</span>
@@ -148,7 +154,14 @@ function StartupCard({ startup }) {
           <h3>{startup.name}</h3>
           <span className="industry-label">{startup.industry}</span>
         </div>
-        <span className="card-arrow" aria-hidden="true">↗</span>
+        <button
+          className="card-arrow"
+          type="button"
+          aria-label={`View details for ${startup.name}`}
+          onClick={() => startup.onOpen(startup)}
+        >
+          <span aria-hidden="true">↗</span>
+        </button>
       </div>
       <p className="startup-description">{startup.description}</p>
       <div className="funding-meta">
@@ -181,6 +194,7 @@ function StartupDiscovery({
   onIndustryChange,
   onClear,
   onRetry,
+  onStartupOpen,
 }) {
   return (
     <section className="discovery-section" id="discover">
@@ -227,7 +241,10 @@ function StartupDiscovery({
         <div className="startup-grid">
           {startups.map((startup, index) => (
             <StartupCard
-              startup={getStartupPresentation(startup, index)}
+              startup={{
+                ...getStartupPresentation(startup, index),
+                onOpen: onStartupOpen,
+              }}
               key={startup.id}
             />
           ))}
@@ -247,6 +264,164 @@ function StartupDiscovery({
         </div>
       )}
     </section>
+  )
+}
+
+function InvestorInterestForm({ startupId, startupName }) {
+  const [submitting, setSubmitting] = useState(false)
+  const [error, setError] = useState('')
+  const [success, setSuccess] = useState(false)
+
+  async function handleSubmit(event) {
+    event.preventDefault()
+    setSubmitting(true)
+    setError('')
+    setSuccess(false)
+
+    const form = event.currentTarget
+    const formData = new FormData(form)
+    const request = {
+      name: formData.get('name'),
+      email: formData.get('email'),
+      message: formData.get('message'),
+    }
+
+    try {
+      const response = await fetch(
+        `${apiBaseUrl}/api/startups/${encodeURIComponent(startupId)}/interests`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(request),
+        },
+      )
+
+      if (!response.ok) {
+        setError(response.status === 400
+          ? 'Please check your name, email, and message, then try again.'
+          : 'We could not send your interest right now. Please try again.')
+        return
+      }
+
+      form.reset()
+      setSuccess(true)
+    } catch {
+      setError('We could not reach FundFlow. Check your connection and try again.')
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  return (
+    <section className="interest-panel" aria-labelledby="interest-heading">
+      <div>
+        <p className="section-kicker">START A CONVERSATION</p>
+        <h3 id="interest-heading">Interested in {startupName}?</h3>
+        <p className="interest-intro">
+          Share a note with the team. This is a request to connect, not an investment.
+        </p>
+      </div>
+      {success ? (
+        <div className="interest-success" role="status" aria-live="polite">
+          <span aria-hidden="true">✓</span>
+          <div>
+            <strong>Your interest was sent</strong>
+            <p>Your note has been recorded. No investment has been made.</p>
+          </div>
+        </div>
+      ) : (
+        <form className="interest-form" onSubmit={handleSubmit}>
+          <label>
+            Your name
+            <input name="name" autoComplete="name" required minLength="2" maxLength="100" />
+          </label>
+          <label>
+            Email address
+            <input
+              name="email"
+              type="email"
+              autoComplete="email"
+              required
+              maxLength="254"
+            />
+          </label>
+          <label>
+            Short message
+            <textarea
+              name="message"
+              required
+              minLength="10"
+              maxLength="1000"
+              rows="4"
+              placeholder="Tell the team what caught your attention…"
+            />
+          </label>
+          {error && <p className="interest-error" role="alert">{error}</p>}
+          <button className="interest-submit" type="submit" disabled={submitting} aria-busy={submitting}>
+            {submitting ? 'Sending…' : 'Express interest'}
+          </button>
+          <p className="interest-privacy">Your contact details are shared only with this submission.</p>
+        </form>
+      )}
+    </section>
+  )
+}
+
+function StartupDetailDialog({ startup, dialogRef, onClose }) {
+  if (!startup) return null
+
+  const progress = startup.fundingGoal > 0
+    ? Math.min(Math.round((startup.amountRaised / startup.fundingGoal) * 100), 100)
+    : 0
+
+  return (
+    <dialog
+      className="startup-dialog"
+      ref={dialogRef}
+      aria-labelledby="startup-detail-title"
+      onClose={onClose}
+    >
+      <div className="detail-header">
+        <div>
+          <p className="section-kicker">STARTUP PROFILE · DEMO DATA</p>
+          <h2 id="startup-detail-title">{startup.name}</h2>
+        </div>
+        <button className="dialog-close" type="button" onClick={() => dialogRef.current?.close()}>
+          <span className="visually-hidden">Close startup profile</span>
+          <span aria-hidden="true">×</span>
+        </button>
+      </div>
+      <div className="detail-summary">
+        <span className={`startup-avatar ${startup.color}`} aria-hidden="true">{startup.initials}</span>
+        <div>
+          <span className="industry-label">{startup.industry}</span>
+          <span className="stage-badge">{startup.stage}</span>
+        </div>
+      </div>
+      <p className="detail-description">{startup.description}</p>
+      <div className="detail-funding">
+        <div>
+          <span>Demo funding goal</span>
+          <strong>{formatMoney(startup.fundingGoal)}</strong>
+        </div>
+        <div>
+          <span>Demo amount raised</span>
+          <strong>{formatMoney(startup.amountRaised)}</strong>
+        </div>
+      </div>
+      <div
+        className="progress-track detail-progress"
+        role="progressbar"
+        aria-label={`${startup.name} demo funding progress`}
+        aria-valuemin="0"
+        aria-valuemax={startup.fundingGoal}
+        aria-valuenow={startup.amountRaised}
+      >
+        <span style={{ width: `${progress}%` }} />
+      </div>
+      <p className="detail-progress-note">{progress}% of demo goal</p>
+      <InvestorInterestForm startupId={startup.id} startupName={startup.name} />
+    </dialog>
   )
 }
 
@@ -271,6 +446,14 @@ function App() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [retryCount, setRetryCount] = useState(0)
+  const [selectedStartup, setSelectedStartup] = useState(null)
+  const dialogRef = useRef(null)
+
+  useEffect(() => {
+    if (selectedStartup && dialogRef.current && !dialogRef.current.open) {
+      dialogRef.current.showModal()
+    }
+  }, [selectedStartup])
 
   useEffect(() => {
     const controller = new AbortController()
@@ -325,11 +508,17 @@ function App() {
           error={error}
           selectedIndustry={selectedIndustry}
           onIndustryChange={setSelectedIndustry}
+          onStartupOpen={setSelectedStartup}
           onRetry={() => setRetryCount((count) => count + 1)}
           onClear={() => {
             setQuery('')
             setSelectedIndustry('All')
           }}
+        />
+        <StartupDetailDialog
+          startup={selectedStartup}
+          dialogRef={dialogRef}
+          onClose={() => setSelectedStartup(null)}
         />
         <ClosingNote />
       </main>
