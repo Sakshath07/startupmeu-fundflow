@@ -1,27 +1,17 @@
-const express = require("express");
-const cors = require("cors");
 require("dotenv").config();
 
-const app = express();
+const app = require("./app");
+const connectDatabase = require("./config/db");
 const PORT = process.env.PORT || 5000;
 
-app.use(cors());
-app.use(express.json());
-
-app.get("/", (req, res) => {
-  res.json({
-    message: "StartupMeu API is running!",
-    status: "success",
+async function startServer() {
+  await connectDatabase();
+  app.listen(PORT, () => {
+    console.log(`StartupMeu server running on http://localhost:${PORT}`);
   });
-});
+}
 
-app.get("/api/health", (req, res) => {
-  res.json({
-    status: "healthy",
-    timestamp: new Date().toISOString(),
-  });
-});
-
-app.listen(PORT, () => {
-  console.log(`StartupMeu server running on http://localhost:${PORT}`);
+startServer().catch(() => {
+  console.error("Server startup failed. Check server configuration and MongoDB availability.");
+  process.exitCode = 1;
 });
