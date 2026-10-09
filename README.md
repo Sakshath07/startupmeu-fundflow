@@ -1,18 +1,18 @@
 # FundFlow
 
-FundFlow is a MERN-stack startup discovery and investor-interest demo. Visitors can browse fictional early-stage startups, search and filter listings, view startup profiles, and send a non-binding message to express interest. The app does not process investments.
+FundFlow is a small MERN-stack startup discovery and investor-interest demo. Visitors can browse fictional early-stage startups, search and filter listings, view startup profiles, and send a non-binding message to express interest. The application does not process investments.
 
 ## Problem and solution
 
-Early-stage founders and potential supporters can find it difficult to discover each other and start a conversation. FundFlow demonstrates a straightforward discovery experience: startups appear in a searchable marketplace, and visitors can send a message to ask to learn more.
+Early-stage founders and potential supporters can find it difficult to discover each other and start a conversation. FundFlow demonstrates a straightforward discovery experience: startups appear in a searchable marketplace, and visitors can send a message to learn more.
 
-All startup names and funding figures in the demo are fictional. Submitting an interest records a request to connect. It is not an investment or offer, and it does not guarantee a response.
+All startup names and funding figures in this demo are fictional. Submitting an interest records a request to connect; it is not an investment or offer, and it does not guarantee a response.
 
 ## Features
 
 - Browse startup listings loaded from the Express API.
 - Search startup names, industries, and descriptions.
-- Filter by industry, and combine an industry filter with search.
+- Filter by industry and combine an industry filter with search.
 - Open a startup card to view its description, stage, funding goal, amount raised, and funding progress.
 - Submit an investor-interest message with a name, email address, and short message.
 - View loading, validation, error, and success states.
@@ -28,7 +28,7 @@ Marketplace totals, company examples, and funding amounts are demonstration valu
 - **Database:** MongoDB, accessed through Mongoose (`^9.11.1`).
 - **Testing and linting:** Node.js built-in test runner and ESLint.
 
-The frontend uses the browser's `fetch` API. It does not use a UI component library or separate HTTP client package.
+The frontend uses the browser's `fetch` API. It does not use a UI component library or a separate HTTP client package.
 
 ## Architecture
 
@@ -38,17 +38,17 @@ Browser (React and Vite)
     `-- POST /api/startups/:startupId/interests
                     |
                     v
-              Express API
+               Express API
                     |
-          routes -> controllers
+           routes -> controllers
                     |
-            Mongoose models
+             Mongoose models
                     |
                     v
-                 MongoDB
+                  MongoDB
 ```
 
-The frontend sends API requests to `http://localhost:5000` by default. If the API uses a different address, set the public frontend variable `VITE_API_BASE_URL`. This variable is an API base URL, not a place for credentials or other secrets.
+By default, the frontend sends API requests to `http://localhost:5000`. If the API uses a different address, set the public frontend variable `VITE_API_BASE_URL`. This variable is an API base URL, not a place for credentials or other secrets.
 
 ## Project structure
 
@@ -119,7 +119,7 @@ Copy-Item .env.example .env
 
 Open `server\.env` privately in a text editor and set `MONGODB_URI` to your own MongoDB connection URI. Do not paste credentials into source code, screenshots, issues, or chat. The `.env` file is ignored by Git.
 
-The checked-in `server/.env.example` contains only these variable names:
+The checked-in `server/.env.example` contains these variable names:
 
 ```text
 MONGODB_URI=
@@ -173,6 +173,8 @@ Returns health status and a generated timestamp:
   "timestamp": "2026-01-01T12:00:00.000Z"
 }
 ```
+
+The timestamp above is an example, not a fixed value.
 
 ### `GET /api/startups`
 
@@ -314,6 +316,6 @@ Completed project work with Code0 includes:
 
 These items describe changes and task history in this repository. They do not imply deployment or live investment processing.
 
-## Development experience (edit this section)
+## AI Development Experience
 
-> **Personal reflection:** Replace this note with your own experience. You might describe which Code0 or AI-assisted tasks helped you understand or build FundFlow, what you reviewed or changed yourself, and what you learned. Keep only statements that reflect your genuine experience.
+Using Code0 and AI-assisted development helped me build FundFlow incrementally, from the React interface to the Express API and MongoDB integration. I reviewed the generated changes, tested API behavior, investigated issues, and used automated tests to validate important scenarios. This experience taught me that AI assistance is most useful when combined with understanding, critical review, and verification rather than accepting generated code without testing it.
